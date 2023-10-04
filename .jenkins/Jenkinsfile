@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clonar el repositorio de GitHub
+                checkout scm
+            }
+        }
+
+        stage('Build and Deploy Nessus Container') {
+            steps {
+                // Construir y desplegar el contenedor Docker de Nessus
+                sh 'docker run -d --name nessus -p 8834:8834 --restart=always -v datnessus:/opt/nessus/var/nessus tenable/nessus:latest-ubuntu'
+            }
+        }
+
+        stage('Build and Deploy Netdata Container') {
+            steps {
+                // Construir y desplegar el contenedor Docker de Netdata
+                sh 'docker run -d --name netdata -p 19999:19999 -v /proc:/host/proc:ro -v /sys:/host/sys:ro -v /var/run/docker.sock:/var/run/docker.sock:ro --cap-add SYS_PTRACE --security-opt apparmor=unconfined netdata/netdata'
+            }
+        }
+
+        stage('Build and Deploy Evaluacion Container') {
+            steps {
+                // Construir y desplegar el contenedor Docker web
+                sh 'docker run -d --name evaluacion -v /home/linux03/evaluacion/actualizar/:/usr/share/nginx/html -p 82:80 ngser:1'
+            }
+        }
+    }
+}
+
